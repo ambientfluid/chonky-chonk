@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #fef7fb;
+  --color-foreground: #2d1b4e;
+
+  /* Bubblegum Pink */
+  --color-bubblegum-50: #fef1f7;
+  --color-bubblegum-100: #fde6f1;
+  --color-bubblegum-200: #fccce4;
+  --color-bubblegum-300: #faa2cd;
+  --color-bubblegum-400: #f66eab;
+  --color-bubblegum-500: #ee3d8b;
+  --color-bubblegum-600: #dd1d6a;
+  --color-bubblegum-700: #bf0f51;
+  --color-bubblegum-800: #9e1044;
+  --color-bubblegum-900: #84123c;
+
+  /* Grape Purple */
+  --color-grape-50: #faf5ff;
+  --color-grape-100: #f3e8ff;
+  --color-grape-200: #e9d5ff;
+  --color-grape-300: #d8b4fe;
+  --color-grape-400: #c084fc;
+  --color-grape-500: #a855f7;
+  --color-grape-600: #9333ea;
+  --color-grape-700: #7e22ce;
+  --color-grape-800: #6b21a8;
+  --color-grape-900: #581c87;
+
+  /* Lime Green */
+  --color-lime-50: #f0fdf4;
+  --color-lime-100: #dcfce7;
+  --color-lime-200: #bbf7d0;
+  --color-lime-300: #86efac;
+  --color-lime-400: #4ade80;
+  --color-lime-500: #22c55e;
+  --color-lime-600: #16a34a;
+  --color-lime-700: #15803d;
+  --color-lime-800: #166534;
+  --color-lime-900: #14532d;
+
+  /* Sky Blue (accent) */
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+
+  /* Fonts */
+  --font-display: "Fredoka", "Comic Sans MS", cursive;
+  --font-body: "Nunito", system-ui, sans-serif;
+
+  /* Animations */
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+  --animate-bounce-slow: bounce 3s infinite;
+  --animate-pop: pop 0.3s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-fade-in: fade-in 0.2s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes pop {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+}
+
+/* Fun scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-grape-50);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bubblegum-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bubblegum-400);
 }
