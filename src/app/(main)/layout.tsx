@@ -4,6 +4,8 @@ import type { Profile } from "@/types/database";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopNav } from "@/components/layout/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
+import { NotificationProvider } from "@/components/providers/NotificationProvider";
+import { OnlineUsers } from "@/components/presence/OnlineUsers";
 
 export default async function MainLayout({
   children,
@@ -36,15 +38,19 @@ export default async function MainLayout({
 
   return (
     <ToastProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-50/50">
-        <Sidebar profile={typedProfile} />
+      <NotificationProvider userId={user.id}>
+        <div className="flex h-screen overflow-hidden bg-gray-50/50">
+          <Sidebar profile={typedProfile}>
+            <OnlineUsers currentUserId={user.id} />
+          </Sidebar>
 
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <TopNav profile={typedProfile} />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <TopNav profile={typedProfile} />
 
-          <main className="flex-1 overflow-y-auto p-8">{children}</main>
+            <main className="flex-1 overflow-y-auto p-8">{children}</main>
+          </div>
         </div>
-      </div>
+      </NotificationProvider>
     </ToastProvider>
   );
 }

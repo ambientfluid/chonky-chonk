@@ -4,6 +4,7 @@ import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { Profile } from "@/types/database";
 import { Avatar } from "@/components/ui/Avatar";
+import { useNotifications } from "@/components/providers/NotificationProvider";
 
 export interface TopNavProps {
   profile: Profile;
@@ -11,6 +12,8 @@ export interface TopNavProps {
 }
 
 export function TopNav({ profile, className }: TopNavProps) {
+  const { notificationCount } = useNotifications();
+
   return (
     <header
       className={cn(
@@ -18,7 +21,7 @@ export function TopNav({ profile, className }: TopNavProps) {
         className,
       )}
     >
-      {/* Page title area -- children or pages can inject content here in the future */}
+      {/* Page title area */}
       <div />
 
       {/* Right side actions */}
@@ -31,10 +34,11 @@ export function TopNav({ profile, className }: TopNavProps) {
         >
           <Bell className="h-5 w-5" />
 
-          {/* Badge -- hardcoded to 0 for now */}
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-bubblegum-500 px-1 text-[10px] font-bold text-white">
-            0
-          </span>
+          {notificationCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-bubblegum-500 px-1 text-[10px] font-bold text-white animate-bounce-slow">
+              {notificationCount}
+            </span>
+          )}
         </button>
 
         {/* User avatar */}
