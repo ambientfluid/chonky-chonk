@@ -23,7 +23,7 @@ export function Logo({ size = "md", className }: LogoProps) {
       alt="Chonky Chonk Game Bonk"
       width={dimensions.width}
       height={dimensions.height}
-      className={cn("object-contain", className)}
+      className={cn("object-contain max-w-full h-auto", className)}
       priority
     />
   );

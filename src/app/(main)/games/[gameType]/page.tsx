@@ -1,11 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Crown, Circle, Hash, Pencil, Grid2x2, ArrowLeft } from "lucide-react";
 import { GAME_CONFIG } from "@/lib/utils/constants";
 import type { GameType } from "@/types/database";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { createClient } from "@/lib/supabase/server";
+import { GameLobby } from "@/components/games/GameLobby";
 
 const iconMap: Record<string, React.ReactNode> = {
   Crown: <Crown className="h-12 w-12" />,
@@ -22,11 +21,48 @@ interface GameTypePageProps {
 export default async function GameTypePage({ params }: GameTypePageProps) {
   const { gameType } = await params;
 
-  // Validate gameType against GAME_CONFIG keys
   const validGameTypes = Object.keys(GAME_CONFIG) as GameType[];
   if (!validGameTypes.includes(gameType as GameType)) {
     notFound();
   }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) redirect("/login");
+
+  // Fetch active/waiting games for this user and game type
+  const { data: activeGames } = await supabase
+    .from("games")
+    .select(
+      "*, player1:profiles!games_player1_id_fkey(*), player2:profiles!games_player2_id_fkey(*)"
+    )
+    .eq("game_type", gameType)
+    .in("status", ["active", "waiting"])
+    .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+    .order("updated_at", { ascending: false });
+
+  // Fetch recent completed games
+  const { data: recentGames } = await supabase
+    .from("games")
+    .select(
+      "*, player1:profiles!games_player1_id_fkey(*), player2:profiles!games_player2_id_fkey(*)"
+    )
+    .eq("game_type", gameType)
+    .eq("status", "completed")
+    .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+    .order("updated_at", { ascending: false })
+    .limit(5);
 
   const config = GAME_CONFIG[gameType as GameType];
 
@@ -49,38 +85,21 @@ export default async function GameTypePage({ params }: GameTypePageProps) {
           {iconMap[config.icon]}
         </div>
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-gray-800">
-              {config.name}
-            </h1>
-            <Badge variant="purple">Coming Soon</Badge>
-          </div>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-gray-800">
+            {config.name}
+          </h1>
           <p className="mt-1 text-gray-500">{config.description}</p>
         </div>
       </div>
 
-      {/* Placeholder content */}
-      <Card className="py-16 text-center">
-        <div
-          className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br ${config.bgGradient} text-white opacity-30`}
-        >
-          {iconMap[config.icon]}
-        </div>
-        <h2 className="mt-6 font-[family-name:var(--font-display)] text-xl font-bold text-gray-600">
-          Game Lobby Coming Soon
-        </h2>
-        <p className="mx-auto mt-2 max-w-md text-sm text-gray-400">
-          The {config.name} lobby is being built. Soon you will be able to
-          create and join games, challenge friends, and track your stats!
-        </p>
-        <div className="mt-8">
-          <Link href="/games">
-            <Button variant="ghost" size="sm">
-              Browse Other Games
-            </Button>
-          </Link>
-        </div>
-      </Card>
+      {/* Game lobby */}
+      <GameLobby
+        gameType={gameType as GameType}
+        userId={user.id}
+        profile={profile}
+        activeGames={activeGames || []}
+        recentGames={recentGames || []}
+      />
     </div>
   );
 }

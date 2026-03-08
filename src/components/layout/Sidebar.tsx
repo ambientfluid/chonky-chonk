@@ -56,9 +56,9 @@ export function Sidebar({ profile, children }: SidebarProps) {
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-grape-100 bg-white">
       {/* Logo */}
-      <div className="flex items-center justify-center px-6 pt-6 pb-2">
+      <div className="flex items-center justify-center p-[5px]">
         <Link href="/" className="transition-transform hover:scale-105">
-          <Logo size="sm" />
+          <Logo className="w-full h-auto" />
         </Link>
       </div>
 
