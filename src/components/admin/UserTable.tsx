@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import type { Profile } from "@/types/database";
 import { Card } from "@/components/ui/Card";
@@ -40,6 +41,13 @@ export function UserTable({ initialUsers }: UserTableProps) {
     newAdminState: boolean;
   }>({ open: false, user: null, newAdminState: false });
   const [toggling, setToggling] = useState(false);
+
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    user: Profile | null;
+  }>({ open: false, user: null });
+  const [deleting, setDeleting] = useState(false);
 
   // Filter and sort users
   const filteredUsers = useMemo(() => {
@@ -122,6 +130,31 @@ export function UserTable({ initialUsers }: UserTableProps) {
       );
     } finally {
       setToggling(false);
+    }
+  }
+
+  async function handleDeleteUser() {
+    if (!deleteModal.user) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: deleteModal.user.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      setUsers((prev) => prev.filter((u) => u.id !== deleteModal.user!.id));
+      setDeleteModal({ open: false, user: null });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -211,6 +244,9 @@ export function UserTable({ initialUsers }: UserTableProps) {
                     <SortIcon field="created_at" />
                   </button>
                 </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-grape-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -264,12 +300,21 @@ export function UserTable({ initialUsers }: UserTableProps) {
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {formatDate(user.created_at)}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => setDeleteModal({ open: true, user })}
+                      className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-bubblegum-50 hover:text-bubblegum-600"
+                      title="Delete user"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-12 text-center text-gray-400"
                   >
                     {searchTerm
@@ -319,9 +364,18 @@ export function UserTable({ initialUsers }: UserTableProps) {
                       {user.bio}
                     </p>
                   )}
-                  <p className="mt-2 text-xs text-gray-400">
-                    Joined {formatDate(user.created_at)}
-                  </p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-gray-400">
+                      Joined {formatDate(user.created_at)}
+                    </p>
+                    <button
+                      onClick={() => setDeleteModal({ open: true, user })}
+                      className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-bubblegum-50 hover:text-bubblegum-600"
+                      title="Delete user"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -434,6 +488,72 @@ export function UserTable({ initialUsers }: UserTableProps) {
                   <>
                     <ShieldOff className="mr-2 h-4 w-4" />
                     Remove Admin
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Confirm delete modal */}
+      <Modal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, user: null })}
+        title="Delete User"
+      >
+        {deleteModal.user && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 rounded-xl bg-grape-50 p-4">
+              <Avatar
+                src={deleteModal.user.avatar_url}
+                name={deleteModal.user.screen_name}
+                size="md"
+              />
+              <div>
+                <p className="font-semibold text-gray-800">
+                  {deleteModal.user.screen_name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Will be permanently deleted
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 rounded-xl bg-bubblegum-50 px-4 py-3 text-sm text-bubblegum-700">
+              <Trash2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                This action is permanent. The user&apos;s account, profile, and all
+                associated data will be deleted and cannot be recovered.
+              </span>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="ghost"
+                size="md"
+                className="flex-1"
+                onClick={() => setDeleteModal({ open: false, user: null })}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                className="flex-1"
+                onClick={handleDeleteUser}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete User
                   </>
                 )}
               </Button>

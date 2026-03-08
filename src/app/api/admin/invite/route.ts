@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     email,
     {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/callback`,
+      data: { onboarding_completed: false },
     }
   );
 

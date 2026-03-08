@@ -33,10 +33,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
   const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/set-password") ||
-    request.nextUrl.pathname.startsWith("/callback");
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/set-password") ||
+    pathname.startsWith("/callback");
 
   // Redirect unauthenticated users to login (except auth pages)
   if (!user && !isAuthPage) {
@@ -45,11 +47,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth pages
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+  if (user) {
+    const needsOnboarding = user.user_metadata?.onboarding_completed === false;
+
+    if (needsOnboarding) {
+      // Allow access to onboarding-related pages only
+      const isOnboardingPage =
+        pathname.startsWith("/set-password") ||
+        pathname.startsWith("/callback");
+
+      if (!isOnboardingPage) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/set-password";
+        return NextResponse.redirect(url);
+      }
+    } else if (isAuthPage && !pathname.startsWith("/callback")) {
+      // Onboarded users should not access login/set-password pages
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   // Admin route guard

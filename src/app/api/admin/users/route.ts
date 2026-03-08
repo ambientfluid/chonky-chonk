@@ -88,3 +88,40 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ profile });
 }
+
+/**
+ * DELETE /api/admin/users
+ * Delete a user account. Removes from auth.users which cascades to profiles.
+ * Body: { userId: string }
+ */
+export async function DELETE(request: Request) {
+  const auth = await verifyAdmin();
+  if ("error" in auth) return auth.error;
+
+  const body = await request.json();
+  const { userId } = body as { userId?: string };
+
+  if (!userId || typeof userId !== "string") {
+    return NextResponse.json(
+      { error: "userId (string) is required" },
+      { status: 400 }
+    );
+  }
+
+  // Prevent admins from deleting themselves
+  if (userId === auth.userId) {
+    return NextResponse.json(
+      { error: "You cannot delete your own account" },
+      { status: 400 }
+    );
+  }
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient.auth.admin.deleteUser(userId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ message: "User deleted successfully" });
+}

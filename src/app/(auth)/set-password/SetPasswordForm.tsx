@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 export default function SetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [screenName, setScreenName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +62,6 @@ export default function SetPasswordForm() {
     e.preventDefault();
     setError(null);
 
-    if (!screenName.trim()) {
-      setError("Please choose a screen name.");
-      return;
-    }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
@@ -82,8 +76,10 @@ export default function SetPasswordForm() {
 
     const supabase = createClient();
 
+    // Set the password and mark onboarding as complete
     const { error: updateError } = await supabase.auth.updateUser({
       password,
+      data: { onboarding_completed: true },
     });
 
     if (updateError) {
@@ -92,28 +88,8 @@ export default function SetPasswordForm() {
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
-      return;
-    }
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ screen_name: screenName.trim() })
-      .eq("id", user.id);
-
-    if (profileError) {
-      setError(profileError.message);
-      setLoading(false);
-      return;
-    }
-
-    router.push("/");
+    // Redirect to profile page to set username and upload avatar
+    router.push("/profile?welcome=true");
     router.refresh();
   }
 
@@ -145,32 +121,14 @@ export default function SetPasswordForm() {
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-grape-800">
-          Set Up Your Account
+          Create Your Account
         </h1>
         <p className="text-sm text-grape-500">
-          Choose your screen name and password to get started
+          Set a password to secure your account
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label
-            htmlFor="screenName"
-            className="block text-sm font-semibold text-grape-700"
-          >
-            Screen Name
-          </label>
-          <Input
-            id="screenName"
-            type="text"
-            placeholder="Your awesome game name"
-            value={screenName}
-            onChange={(e) => setScreenName(e.target.value)}
-            required
-            autoComplete="username"
-          />
-        </div>
-
         <div className="space-y-2">
           <label
             htmlFor="password"
@@ -221,7 +179,7 @@ export default function SetPasswordForm() {
           className="w-full"
           size="lg"
         >
-          {loading ? "Setting up..." : "Start Playing!"}
+          {loading ? "Setting up..." : "Continue"}
         </Button>
       </form>
     </div>

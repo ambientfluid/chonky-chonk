@@ -16,22 +16,13 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  // Check if the user still needs to set a password / complete profile setup.
-  // Invited users who haven't finished onboarding won't have a screen_name yet.
+  // Check if the user still needs to complete onboarding (set password, profile).
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("screen_name")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.screen_name) {
-      return NextResponse.redirect(`${origin}/set-password`);
-    }
+  if (user?.user_metadata?.onboarding_completed === false) {
+    return NextResponse.redirect(`${origin}/set-password`);
   }
 
   return NextResponse.redirect(`${origin}/`);
