@@ -265,14 +265,14 @@ export function UserTable({ initialUsers }: UserTableProps) {
                       size="sm"
                     />
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-gray-800">
-                      {user.screen_name}
-                    </span>
-                  </td>
                   <td className="max-w-[200px] px-4 py-3">
                     <span className="line-clamp-1 text-sm text-gray-500">
                       {user.bio || "--"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="font-medium text-gray-800">
+                      {user.screen_name}
                     </span>
                   </td>
                   <td className="px-4 py-3">

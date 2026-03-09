@@ -4,6 +4,8 @@ import { getEngine } from "@/lib/games/engine-factory";
 import type { Game } from "@/types/database";
 import type { GameState } from "@/types/game";
 
+export const runtime = "edge";
+
 /* -------------------------------------------------------------------------
  * POST /api/games/[gameId]/move
  * Server-validated move endpoint (primarily for Hangman where the word

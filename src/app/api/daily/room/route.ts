@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const runtime = "edge";
+
 /* -------------------------------------------------------------------------
  * POST /api/daily/room
  * Creates a Daily.co room for video chat during a game session.

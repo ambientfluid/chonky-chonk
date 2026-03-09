@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const runtime = "edge";
+
 /**
  * Verify the requesting user is an admin.
  * Returns the user ID if admin, or a NextResponse error otherwise.

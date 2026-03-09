@@ -1,18 +1,37 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const runtime = "edge";
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
-  }
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as
+    | "invite"
+    | "email"
+    | "signup"
+    | "recovery"
+    | null;
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
+  if (tokenHash && type) {
+    // Direct token verification (invite emails, email confirmations)
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
+    if (error) {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+  } else if (code) {
+    // PKCE code exchange (OAuth, magic link)
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+  } else {
     return NextResponse.redirect(`${origin}/login`);
   }
 

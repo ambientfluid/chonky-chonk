@@ -1,7 +1,38 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { rateLimit } from "@/lib/utils/rate-limit";
+
+// Rate limit: 10 requests per 60s for auth/admin API, 30 per 60s for other API routes
+const AUTH_RATE_LIMIT = { max: 10, windowMs: 60_000 };
+const API_RATE_LIMIT = { max: 30, windowMs: 60_000 };
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+  // Apply rate limiting to API and auth-sensitive routes
+  const isApiRoute = pathname.startsWith("/api/");
+  const isAuthAction = pathname === "/callback" || pathname === "/set-password";
+  const isAdminApi = pathname.startsWith("/api/admin/");
+
+  if (isAdminApi || isAuthAction) {
+    const result = rateLimit(`${ip}:auth`, AUTH_RATE_LIMIT.max, AUTH_RATE_LIMIT.windowMs);
+    if (result.limited) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(result.retryAfter) } },
+      );
+    }
+  } else if (isApiRoute) {
+    const result = rateLimit(`${ip}:api`, API_RATE_LIMIT.max, API_RATE_LIMIT.windowMs);
+    if (result.limited) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(result.retryAfter) } },
+      );
+    }
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -32,8 +63,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
 
   const isAuthPage =
     pathname.startsWith("/login") ||
@@ -70,7 +99,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Admin route guard
-  if (request.nextUrl.pathname.startsWith("/admin") && user) {
+  if (pathname.startsWith("/admin") && user) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("is_admin")
