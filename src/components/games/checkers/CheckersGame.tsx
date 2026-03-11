@@ -275,7 +275,7 @@ export function CheckersGame({
       {/* Board */}
       <div
         className={cn(
-          "w-full max-w-[400px] rounded-2xl p-3",
+          "w-full max-w-[560px] rounded-2xl p-3",
           "bg-gradient-to-br from-bubblegum-100 via-grape-100 to-lime-100",
           "shadow-lg",
           canInteract && "shadow-xl shadow-bubblegum-200/60",
