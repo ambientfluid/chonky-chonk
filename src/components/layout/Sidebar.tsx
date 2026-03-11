@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Gamepad2,
@@ -10,11 +10,13 @@ import {
   BarChart3,
   Shield,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { Profile } from "@/types/database";
 import { Avatar } from "@/components/ui/Avatar";
 import { Logo } from "@/components/layout/Logo";
+import { createClient } from "@/lib/supabase/client";
 
 interface NavItem {
   label: string;
@@ -47,6 +49,13 @@ export interface SidebarProps {
 
 export function Sidebar({ profile, children }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -110,13 +119,23 @@ export function Sidebar({ profile, children }: SidebarProps) {
             <p className="truncate text-sm font-bold text-gray-800">
               {profile.screen_name}
             </p>
-            <Link
-              href="/profile"
-              className="group inline-flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-grape-500"
-            >
-              <Settings className="h-3 w-3 transition-transform group-hover:rotate-90" />
-              Settings
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/profile"
+                className="group inline-flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-grape-500"
+              >
+                <Settings className="h-3 w-3 transition-transform group-hover:rotate-90" />
+                Settings
+              </Link>
+              <span className="text-gray-300">·</span>
+              <button
+                onClick={handleSignOut}
+                className="group inline-flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-red-500"
+              >
+                <LogOut className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
       </div>
