@@ -24,7 +24,7 @@ export function IncomingInviteToast({
   async function handleAccept() {
     const gameId = await onAccept(invite.id);
     if (gameId) {
-      router.push(`/games/${invite.game_type}?game=${gameId}`);
+      router.push(`/games/${invite.game_type}/${gameId}`);
     }
   }
 

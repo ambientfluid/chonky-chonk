@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { GameControls } from "@/components/games/GameControls";
 import { GameHelpDrawer } from "@/components/games/GameHelpDrawer";
+import { VideoChat } from "@/components/video/VideoChat";
 import { ChessGame } from "@/components/games/chess/ChessGame";
 import { CheckersGame } from "@/components/games/checkers/CheckersGame";
 import { TicTacToeGame } from "@/components/games/tictactoe/TicTacToeGame";
@@ -44,6 +45,13 @@ export function GameSession({
 }: GameSessionProps) {
   const router = useRouter();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+
+  const dailyDomain =
+    process.env.NEXT_PUBLIC_DAILY_DOMAIN || "chonky-chonk";
+  const videoRoomUrl = game.daily_room_name
+    ? `https://${dailyDomain}.daily.co/${game.daily_room_name}`
+    : null;
 
   const config = GAME_CONFIG[game.game_type];
 
@@ -276,6 +284,30 @@ export function GameSession({
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
+          {videoRoomUrl && (
+            <button
+              onClick={() => setVideoOpen((v) => !v)}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-xl",
+                "transition-all duration-200",
+                "hover:scale-105 active:scale-95",
+                videoOpen
+                  ? "bg-bubblegum-100 text-bubblegum-600"
+                  : "bg-grape-50 text-grape-400 hover:bg-grape-100 hover:text-grape-600",
+              )}
+              aria-label={videoOpen ? "Close video chat" : "Open video chat"}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-5 w-5"
+              >
+                <path d="M3.25 4A2.25 2.25 0 001 6.25v7.5A2.25 2.25 0 003.25 16h7.5A2.25 2.25 0 0013 13.75v-7.5A2.25 2.25 0 0010.75 4h-7.5zM19 4.75a.75.75 0 00-1.218-.584l-3.032 2.422v6.824l3.032 2.422A.75.75 0 0019 15.25V4.75z" />
+              </svg>
+            </button>
+          )}
         <button
           onClick={() => setHelpOpen(true)}
           className={cn(
@@ -300,6 +332,7 @@ export function GameSession({
             />
           </svg>
         </button>
+        </div>
       </div>
 
       {/* Main layout */}
@@ -311,6 +344,11 @@ export function GameSession({
 
         {/* Right panel: Side info */}
         <div className="space-y-4">
+          {/* Video chat */}
+          {videoOpen && videoRoomUrl && (
+            <VideoChat roomUrl={videoRoomUrl} userName={profile.screen_name} />
+          )}
+
           {/* Players card */}
           <Card className="space-y-3 p-4">
             <h3 className="text-sm font-bold text-grape-400">Players</h3>

@@ -38,27 +38,30 @@ export function usePresence(): UsePresenceReturn {
 
     channelRef.current = channel;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<OnlineUser>();
-        const users: OnlineUser[] = [];
+    function syncPresenceState() {
+      const state = channel.presenceState<OnlineUser>();
+      const users: OnlineUser[] = [];
 
-        for (const key of Object.keys(state)) {
-          const presences = state[key];
-          if (presences && presences.length > 0) {
-            // Take the most recent presence for each user
-            const presence = presences[0];
-            users.push({
-              user_id: presence.user_id,
-              screen_name: presence.screen_name,
-              avatar_url: presence.avatar_url,
-              online_at: presence.online_at,
-            });
-          }
+      for (const key of Object.keys(state)) {
+        const presences = state[key];
+        if (presences && presences.length > 0) {
+          const presence = presences[0];
+          users.push({
+            user_id: presence.user_id,
+            screen_name: presence.screen_name,
+            avatar_url: presence.avatar_url,
+            online_at: presence.online_at,
+          });
         }
+      }
 
-        setOnlineUsers(users);
-      })
+      setOnlineUsers(users);
+    }
+
+    channel
+      .on("presence", { event: "sync" }, syncPresenceState)
+      .on("presence", { event: "join" }, syncPresenceState)
+      .on("presence", { event: "leave" }, syncPresenceState)
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({

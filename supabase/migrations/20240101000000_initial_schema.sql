@@ -30,10 +30,10 @@ CREATE TABLE IF NOT EXISTS public.friendships (
 CREATE TABLE IF NOT EXISTS public.games (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   game_type TEXT CHECK (game_type IN ('chess', 'checkers', 'tic-tac-toe', 'hangman', 'connect-four')) NOT NULL,
-  player1_id UUID REFERENCES public.profiles(id) NOT NULL,
-  player2_id UUID REFERENCES public.profiles(id) NOT NULL,
+  player1_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  player2_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   status TEXT CHECK (status IN ('waiting', 'active', 'completed', 'abandoned')) DEFAULT 'waiting',
-  winner_id UUID REFERENCES public.profiles(id),
+  winner_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   game_state JSONB DEFAULT '{}'::jsonb,
   current_turn UUID,
   daily_room_name TEXT,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.games (
 CREATE TABLE IF NOT EXISTS public.game_moves (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   game_id UUID REFERENCES public.games(id) ON DELETE CASCADE NOT NULL,
-  player_id UUID REFERENCES public.profiles(id) NOT NULL,
+  player_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   move_data JSONB NOT NULL,
   move_number INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
